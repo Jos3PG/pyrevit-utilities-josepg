@@ -1,0 +1,12 @@
+{
+  "type": "extension",
+  "name": "UtilitiesPG",
+  "builtin": false,
+  "default_enabled": true,
+  "author": "Jos3PG",
+  "author_profile": "https://github.com/Jos3PG",
+  "description": "Colección de herramientas, dashboards y utilidades de automatización BIM para pyRevit por Jos3PG.",
+  "url": "https://github.com/Jos3PG/pyrevit-utilities-josepg",
+  "website": "https://github.com/Jos3PG/pyrevit-utilities-josepg",
+  "version": "1.0.0"
+}
