@@ -1,6 +1,6 @@
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="CSV Export - Habitaciones y Áreas" 
+        Title="CSV Export - Rooms &amp; Areas" 
         Height="720" Width="520"
         MinHeight="580" MinWidth="440"
         WindowStartupLocation="CenterScreen"
@@ -8,7 +8,7 @@
         Background="#F4F4F6">
 
     <Window.Resources>
-        <!-- Estilos para controles -->
+        <!-- Control styles -->
         <Style TargetType="GroupBox">
             <Setter Property="Margin" Value="0,0,0,8"/>
             <Setter Property="Padding" Value="8"/>
@@ -40,24 +40,24 @@
 
     <Grid Margin="12">
         <Grid.RowDefinitions>
-            <!-- Fila 0: Presets -->
+            <!-- Row 0: Presets -->
             <RowDefinition Height="Auto"/>
-            <!-- Fila 1: Selector de Categoría -->
+            <!-- Row 1: Category Selector -->
             <RowDefinition Height="Auto"/>
-            <!-- Fila 2: Parámetros a exportar (Expansible) -->
+            <!-- Row 2: Parameters to Export (Expandable) -->
             <RowDefinition Height="*"/>
-            <!-- Fila 3: Opciones de aspecto (captura) -->
+            <!-- Row 3: Schedule Appearance -->
             <RowDefinition Height="Auto"/>
-            <!-- Fila 4: Opciones de salida (captura) -->
+            <!-- Row 4: Output Options -->
             <RowDefinition Height="Auto"/>
-            <!-- Fila 5: Ubicación del archivo -->
+            <!-- Row 5: File Location -->
             <RowDefinition Height="Auto"/>
-            <!-- Fila 6: Botones de acción inferiores -->
+            <!-- Row 6: Bottom Action Buttons -->
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- 0. SECCIÓN PRESETS -->
-        <GroupBox Grid.Row="0" Header="Presets de exportación">
+        <!-- 0. PRESETS SECTION -->
+        <GroupBox Grid.Row="0" Header="Export Presets">
             <Grid Margin="0,4,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -67,27 +67,27 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <ComboBox x:Name="cb_Presets" Grid.Column="0" Margin="0,0,6,0"/>
-                <Button x:Name="btn_SavePreset" Grid.Column="1" Content="Guardar" Margin="0,0,4,0" ToolTip="Guardar modificaciones en el preset actual"/>
-                <Button x:Name="btn_NewPreset" Grid.Column="2" Content="Nuevo" Margin="0,0,4,0" ToolTip="Crear un nuevo preset con la configuración actual"/>
-                <Button x:Name="btn_LoadPreset" Grid.Column="3" Content="Cargar" Margin="0,0,4,0" ToolTip="Recargar la configuración guardada de este preset"/>
-                <Button x:Name="btn_DeletePreset" Grid.Column="4" Content="Eliminar" ToolTip="Eliminar el preset seleccionado"/>
+                <Button x:Name="btn_SavePreset" Grid.Column="1" Content="Save" Margin="0,0,4,0" ToolTip="Save changes to current preset"/>
+                <Button x:Name="btn_NewPreset" Grid.Column="2" Content="New" Margin="0,0,4,0" ToolTip="Create a new preset with current settings"/>
+                <Button x:Name="btn_LoadPreset" Grid.Column="3" Content="Load" Margin="0,0,4,0" ToolTip="Reload saved settings for this preset"/>
+                <Button x:Name="btn_DeletePreset" Grid.Column="4" Content="Delete" ToolTip="Delete selected preset"/>
             </Grid>
         </GroupBox>
 
-        <!-- 1. SECCIÓN CATEGORÍA -->
-        <GroupBox Grid.Row="1" Header="Elemento a exportar (Category)">
+        <!-- 1. CATEGORY SECTION -->
+        <GroupBox Grid.Row="1" Header="Element Category to Export">
             <Grid Margin="0,4,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Categoría:" Margin="0,0,10,0"/>
+                <TextBlock Grid.Column="0" Text="Category:" Margin="0,0,10,0"/>
                 <ComboBox x:Name="cb_Category" Grid.Column="1"/>
             </Grid>
         </GroupBox>
 
-        <!-- 2. SECCIÓN PARÁMETROS -->
-        <GroupBox Grid.Row="2" Header="Parámetros a exportar">
+        <!-- 2. PARAMETERS SECTION -->
+        <GroupBox Grid.Row="2" Header="Parameters to Export">
             <Grid Margin="0,4,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -95,44 +95,44 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Barra de búsqueda y conteo -->
+                <!-- Search bar and counter -->
                 <Grid Grid.Row="0" Margin="0,0,0,6">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBox x:Name="tb_SearchParam" Grid.Column="0" Height="25" VerticalContentAlignment="Center" 
-                             ToolTip="Escribe para filtrar parámetros en tiempo real"/>
-                    <TextBlock x:Name="lbl_ParamCount" Grid.Column="1" Text="0 seleccionados" Margin="8,0,0,0" 
+                             ToolTip="Type to filter parameters in real-time"/>
+                    <TextBlock x:Name="lbl_ParamCount" Grid.Column="1" Text="0 selected" Margin="8,0,0,0" 
                                FontWeight="Normal" Foreground="#555555"/>
                 </Grid>
 
-                <!-- Lista de parámetros con checkboxes -->
+                <!-- Parameters list with checkboxes -->
                 <Border Grid.Row="1" BorderBrush="#CCCCCC" BorderThickness="1" Background="#FFFFFF">
                     <ListBox x:Name="lb_Parameters" BorderThickness="0" Background="Transparent" 
                              ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
                 </Border>
 
-                <!-- Botones de selección rápida -->
+                <!-- Quick selection buttons -->
                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,0,0">
-                    <Button x:Name="btn_SelectAll" Content="Seleccionar todos" Margin="0,0,6,0"/>
-                    <Button x:Name="btn_DeselectAll" Content="Deseleccionar todos"/>
+                    <Button x:Name="btn_SelectAll" Content="Select All" Margin="0,0,6,0"/>
+                    <Button x:Name="btn_DeselectAll" Content="Deselect All"/>
                 </StackPanel>
             </Grid>
         </GroupBox>
 
-        <!-- 3. SECCIÓN ASPECTO (SCHEDULE APPEARANCE - SEGÚN CAPTURA) -->
-        <GroupBox Grid.Row="3" Header="Schedule appearance">
+        <!-- 3. SCHEDULE APPEARANCE SECTION -->
+        <GroupBox Grid.Row="3" Header="Schedule Appearance">
             <StackPanel Margin="0,4,0,0">
                 <CheckBox x:Name="chk_ExportTitle" Content="Export title" Margin="0,0,0,6" IsChecked="False"/>
                 <CheckBox x:Name="chk_Headers" Content="Export column headers" Margin="0,0,0,6" IsChecked="True"/>
-                <CheckBox x:Name="chk_IncludeLinks" Content="Include elements from Revit Links (Incluir modelos vinculados)" Margin="0,0,0,6" IsChecked="True"/>
+                <CheckBox x:Name="chk_IncludeLinks" Content="Include elements from Revit Links" Margin="0,0,0,6" IsChecked="True"/>
                 <CheckBox x:Name="chk_ExcludeUnplaced" Content="Exclude unplaced / unbounded elements" IsChecked="True"/>
             </StackPanel>
         </GroupBox>
 
-        <!-- 4. SECCIÓN OPCIONES DE SALIDA (OUTPUT OPTIONS - SEGÚN CAPTURA) -->
-        <GroupBox Grid.Row="4" Header="Output options">
+        <!-- 4. OUTPUT OPTIONS SECTION -->
+        <GroupBox Grid.Row="4" Header="Output Options">
             <Grid Margin="0,4,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="130"/>
@@ -151,19 +151,19 @@
             </Grid>
         </GroupBox>
 
-        <!-- 5. SECCIÓN UBICACIÓN DEL ARCHIVO -->
-        <GroupBox Grid.Row="5" Header="Ubicación del CSV (Location of the CSV)">
+        <!-- 5. FILE LOCATION SECTION -->
+        <GroupBox Grid.Row="5" Header="CSV File Location">
             <Grid Margin="0,4,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBox x:Name="tb_FilePath" Grid.Column="0" Height="26" VerticalContentAlignment="Center" Margin="0,0,6,0"/>
-                <Button x:Name="btn_Browse" Grid.Column="1" Content="Examinar..."/>
+                <Button x:Name="btn_Browse" Grid.Column="1" Content="Browse..."/>
             </Grid>
         </GroupBox>
 
-        <!-- 6. BOTONES DE ACCIÓN INFERIORES -->
+        <!-- 6. BOTTOM ACTION BUTTONS -->
         <Grid Grid.Row="6" Margin="0,8,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -171,9 +171,9 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Button x:Name="btn_Export" Grid.Column="1" Content="Exportar CSV" Width="110" Height="28" 
+            <Button x:Name="btn_Export" Grid.Column="1" Content="Export CSV" Width="110" Height="28" 
                     FontWeight="Bold" Background="#0078D7" Foreground="#FFFFFF" Margin="0,0,8,0"/>
-            <Button x:Name="btn_Cancel" Grid.Column="2" Content="Cancelar" Width="85" Height="28"/>
+            <Button x:Name="btn_Cancel" Grid.Column="2" Content="Cancel" Width="85" Height="28"/>
         </Grid>
     </Grid>
 </Window>

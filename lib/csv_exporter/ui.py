@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Controlador de la ventana WPF para la exportación de CSV en pyRevit."""
+"""WPF Window controller for CSV Export in pyRevit (English UI)."""
 
 import os
 import datetime
@@ -24,7 +24,7 @@ XAML_PATH = os.path.join(os.path.dirname(__file__), "xaml", "CSVExportWindow.xam
 
 
 class CSVExportWindow(forms.WPFWindow):
-    """Ventana WPF para configurar y exportar CSV de Habitaciones y Áreas."""
+    """WPF Window to configure and export Rooms and Areas to CSV."""
 
     def __init__(self, doc):
         forms.WPFWindow.__init__(self, XAML_PATH)
@@ -32,12 +32,12 @@ class CSVExportWindow(forms.WPFWindow):
         self.export_options = None
         self.is_loading = True
         
-        # Colecciones internas
+        # Internal collections
         self.all_params = []
         self.selected_params = set()
         self.current_elements = []
         
-        # 1. Conectar eventos de controles
+        # 1. Connect control events
         self.cb_Category.SelectionChanged += self.on_category_changed
         self.tb_SearchParam.TextChanged += self.on_search_changed
         self.btn_SelectAll.Click += self.on_select_all
@@ -55,37 +55,37 @@ class CSVExportWindow(forms.WPFWindow):
         self.chk_ExcludeUnplaced.Checked += self.on_unplaced_option_changed
         self.chk_ExcludeUnplaced.Unchecked += self.on_unplaced_option_changed
 
-        # 2. Inicializar opciones fijas
+        # 2. Initialize dropdowns
         self._init_comboboxes()
 
-        # 3. Cargar presets
+        # 3. Load presets
         self._populate_presets()
 
-        # 4. Cargar categoría inicial (Rooms)
+        # 4. Load initial category (Rooms)
         self.is_loading = False
         self._load_category("Rooms")
         
-        # 5. Aplicar preset inicial si existe
+        # 5. Apply initial preset if available
         self._apply_initial_preset()
 
     def _init_comboboxes(self):
-        """Inicializa desplegables de categoría, delimitador y calificador."""
-        # Categoría
+        """Initializes Category, Field Delimiter, and Text Qualifier dropdowns."""
+        # Category
         self.cb_Category.Items.Clear()
-        for cat_name in ["Rooms (Habitaciones)", "Areas (Áreas)"]:
+        for cat_name in ["Rooms", "Areas"]:
             item = ComboBoxItem()
             item.Content = cat_name
-            item.Tag = "Rooms" if "Rooms" in cat_name else "Areas"
+            item.Tag = cat_name
             self.cb_Category.Items.Add(item)
         self.cb_Category.SelectedIndex = 0
 
-        # Delimitador de campo (según captura: ; por defecto)
+        # Field delimiter (Default: ; as in Revit Export Schedule)
         self.cb_Delimiter.Items.Clear()
         delimiters = [
-            (";", "; (Punto y coma)"),
-            (",", ", (Coma)"),
-            ("Tab", "Tab (Tabulación)"),
-            ("|", "| (Pleca / Barra)")
+            (";", "; (Semicolon)"),
+            (",", ", (Comma)"),
+            ("Tab", "Tab (Tabulation)"),
+            ("|", "| (Pipe)")
         ]
         for val, label in delimiters:
             item = ComboBoxItem()
@@ -94,12 +94,12 @@ class CSVExportWindow(forms.WPFWindow):
             self.cb_Delimiter.Items.Add(item)
         self.cb_Delimiter.SelectedIndex = 0
 
-        # Calificador de texto (según captura: (none) por defecto)
+        # Text qualifier (Default: (none))
         self.cb_TextQualifier.Items.Clear()
         qualifiers = [
-            ("(none)", "(none) - Ninguno"),
-            ('"', '" (Comillas dobles)'),
-            ("'", "' (Comillas simples)")
+            ("(none)", "(none)"),
+            ('"', '" (Double Quotes)'),
+            ("'", "' (Single Quotes)")
         ]
         for val, label in qualifiers:
             item = ComboBoxItem()
@@ -109,7 +109,7 @@ class CSVExportWindow(forms.WPFWindow):
         self.cb_TextQualifier.SelectedIndex = 0
 
     def _populate_presets(self, select_name=None):
-        """Llena el ComboBox de presets con los disponibles."""
+        """Populates the Presets ComboBox."""
         self.cb_Presets.Items.Clear()
         presets = load_presets()
         selected_index = 0
@@ -128,19 +128,19 @@ class CSVExportWindow(forms.WPFWindow):
             self.cb_Presets.SelectedIndex = selected_index
 
     def _apply_initial_preset(self):
-        """Aplica el primer preset disponible."""
+        """Applies the first available preset."""
         if self.cb_Presets.SelectedItem:
             self.on_preset_changed(None, None)
 
     def _get_current_category_tag(self):
-        """Retorna 'Rooms' o 'Areas' según la selección actual."""
+        """Returns 'Rooms' or 'Areas' according to current selection."""
         selected = self.cb_Category.SelectedItem
         if selected:
             return selected.Tag
         return "Rooms"
 
     def _load_category(self, category_tag):
-        """Recopila elementos y parámetros de la categoría seleccionada (Host y Vínculos)."""
+        """Collects elements and available parameters for the selected category."""
         exclude_unplaced = bool(self.chk_ExcludeUnplaced.IsChecked)
         include_links = bool(self.chk_IncludeLinks.IsChecked)
         self.current_elements = get_spatial_elements(
@@ -152,15 +152,16 @@ class CSVExportWindow(forms.WPFWindow):
         
         self.all_params = get_available_parameters(self.current_elements)
         
-        # Sugerir ruta de guardado por defecto
-        self._update_default_filepath(category_tag)
+        # Suggest default export file path if none set
+        if not (self.tb_FilePath.Text or "").strip():
+            self._update_default_filepath(category_tag)
         
-        # Refrescar vista de parámetros
+        # Refresh parameter list view
         self._refresh_params_list()
 
     def _update_default_filepath(self, category_tag):
-        """Genera una ruta sugerida en Documentos o Escritorio."""
-        doc_title = "Modelo"
+        """Generates a default suggested file path in Documents."""
+        doc_title = "Model"
         try:
             if self.doc and self.doc.Title:
                 doc_title = self.doc.Title.replace(".rvt", "")
@@ -168,8 +169,7 @@ class CSVExportWindow(forms.WPFWindow):
             pass
             
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
-        cat_es = "Habitaciones" if category_tag == "Rooms" else "Areas"
-        filename = "{}_{}_{}.csv".format(cat_es, doc_title, timestamp)
+        filename = "{}_{}_{}.csv".format(category_tag, doc_title, timestamp)
         
         docs_dir = os.path.join(os.getenv("USERPROFILE") or os.path.expanduser("~"), "Documents")
         if not os.path.exists(docs_dir):
@@ -178,7 +178,7 @@ class CSVExportWindow(forms.WPFWindow):
         self.tb_FilePath.Text = os.path.join(docs_dir, filename)
 
     def _refresh_params_list(self):
-        """Actualiza el ListBox de parámetros filtrando por el texto de búsqueda."""
+        """Updates the ListBox filtering items based on the search query."""
         filter_text = (self.tb_SearchParam.Text or "").strip().lower()
         self.lb_Parameters.Items.Clear()
 
@@ -209,11 +209,11 @@ class CSVExportWindow(forms.WPFWindow):
         total = len(self.all_params)
         selected = len(self.selected_params)
         elem_count = len(self.current_elements)
-        self.lbl_ParamCount.Text = "{} de {} selec. ({} elem. encontrados)".format(
+        self.lbl_ParamCount.Text = "{} of {} selected ({} elements found)".format(
             selected, total, elem_count
         )
 
-    # ---- Eventos de Interfaz -----------------------------------------------
+    # ---- UI Event Handlers -------------------------------------------------
 
     def on_category_changed(self, sender, args):
         if self.is_loading:
@@ -256,8 +256,8 @@ class CSVExportWindow(forms.WPFWindow):
 
     def on_browse(self, sender, args):
         sfd = SaveFileDialog()
-        sfd.Title = "Seleccionar destino de exportación CSV"
-        sfd.Filter = "Archivos CSV (*.csv)|*.csv|Todos los archivos (*.*)|*.*"
+        sfd.Title = "Select CSV Destination File"
+        sfd.Filter = "CSV Files (*.csv)|*.csv|All Files (*.*)|*.*"
         sfd.DefaultExt = ".csv"
         
         current_path = self.tb_FilePath.Text
@@ -271,9 +271,10 @@ class CSVExportWindow(forms.WPFWindow):
         if sfd.ShowDialog() == True:
             self.tb_FilePath.Text = sfd.FileName
 
-    # ---- Gestión de Presets ------------------------------------------------
+    # ---- Preset Management -------------------------------------------------
 
     def on_preset_changed(self, sender, args):
+        """Loads and applies settings from the selected preset."""
         if not self.cb_Presets.SelectedItem:
             return
         preset_name = self.cb_Presets.SelectedItem.Tag
@@ -284,43 +285,50 @@ class CSVExportWindow(forms.WPFWindow):
         data = presets[preset_name]
         cat_name = data.get("category", "Rooms")
         
-        # 1. Establecer categoría
+        # 1. Set Category
         for i in range(self.cb_Category.Items.Count):
             if self.cb_Category.Items[i].Tag == cat_name:
                 self.cb_Category.SelectedIndex = i
                 break
                 
-        # 2. Recargar elementos de categoría
+        # 2. Reload elements for category
         self._load_category(cat_name)
         
-        # 3. Establecer parámetros seleccionados
+        # 3. Restore selected parameters
         preset_params = set(data.get("parameters", []))
         self.selected_params = set([p for p in self.all_params if p in preset_params])
         
-        # 4. Delimitador
+        # 4. Restore Field Delimiter
         target_delim = data.get("delimiter", ";")
         for i in range(self.cb_Delimiter.Items.Count):
             if self.cb_Delimiter.Items[i].Tag == target_delim:
                 self.cb_Delimiter.SelectedIndex = i
                 break
                 
-        # 5. Calificador de texto
+        # 5. Restore Text Qualifier
         target_qual = data.get("text_qualifier", "(none)")
         for i in range(self.cb_TextQualifier.Items.Count):
             if self.cb_TextQualifier.Items[i].Tag == target_qual:
                 self.cb_TextQualifier.SelectedIndex = i
                 break
                 
-        # 6. Opciones de aspecto
+        # 6. Restore Appearance Checkboxes
         self.chk_Headers.IsChecked = data.get("export_headers", True)
         self.chk_ExcludeUnplaced.IsChecked = data.get("exclude_unplaced", True)
         self.chk_IncludeLinks.IsChecked = data.get("include_links", True)
         
-        # Refrescar vista
+        # 7. Restore Filepath if saved in preset
+        saved_path = (data.get("filepath") or "").strip()
+        if saved_path:
+            self.tb_FilePath.Text = saved_path
+        else:
+            self._update_default_filepath(cat_name)
+
+        # Refresh parameter list view
         self._refresh_params_list()
 
     def on_save_preset(self, sender, args):
-        """Guarda las modificaciones sobre el preset actualmente seleccionado."""
+        """Saves / overwrites modifications to the currently selected preset."""
         if not self.cb_Presets.SelectedItem:
             self.on_new_preset(sender, args)
             return
@@ -328,6 +336,7 @@ class CSVExportWindow(forms.WPFWindow):
         name = self.cb_Presets.SelectedItem.Tag
         selected_delim = self.cb_Delimiter.SelectedItem.Tag if self.cb_Delimiter.SelectedItem else ";"
         selected_qual = self.cb_TextQualifier.SelectedItem.Tag if self.cb_TextQualifier.SelectedItem else "(none)"
+        current_filepath = (self.tb_FilePath.Text or "").strip()
 
         config_data = {
             "category": self._get_current_category_tag(),
@@ -336,19 +345,20 @@ class CSVExportWindow(forms.WPFWindow):
             "text_qualifier": selected_qual,
             "export_headers": bool(self.chk_Headers.IsChecked),
             "exclude_unplaced": bool(self.chk_ExcludeUnplaced.IsChecked),
-            "include_links": bool(self.chk_IncludeLinks.IsChecked)
+            "include_links": bool(self.chk_IncludeLinks.IsChecked),
+            "filepath": current_filepath
         }
 
         if save_preset(name, config_data):
-            forms.alert("Cambios guardados en el preset '{}'.".format(name), title="Preset Guardado")
+            forms.alert("Changes saved to preset '{}'.".format(name), title="Preset Saved")
         else:
-            forms.alert("No se pudo guardar el preset.", error=True)
+            forms.alert("Could not save preset.", error=True)
 
     def on_new_preset(self, sender, args):
-        """Crea un nuevo preset solicitando un nombre."""
+        """Creates a new preset requesting a name from user."""
         name = forms.ask_for_string(
-            prompt="Ingresa un nombre para el nuevo Preset:",
-            title="Nuevo Preset de Exportación"
+            prompt="Enter a name for the new Preset:",
+            title="New Export Preset"
         )
         if not name:
             return
@@ -356,6 +366,7 @@ class CSVExportWindow(forms.WPFWindow):
         name = name.strip()
         selected_delim = self.cb_Delimiter.SelectedItem.Tag if self.cb_Delimiter.SelectedItem else ";"
         selected_qual = self.cb_TextQualifier.SelectedItem.Tag if self.cb_TextQualifier.SelectedItem else "(none)"
+        current_filepath = (self.tb_FilePath.Text or "").strip()
 
         config_data = {
             "category": self._get_current_category_tag(),
@@ -364,31 +375,33 @@ class CSVExportWindow(forms.WPFWindow):
             "text_qualifier": selected_qual,
             "export_headers": bool(self.chk_Headers.IsChecked),
             "exclude_unplaced": bool(self.chk_ExcludeUnplaced.IsChecked),
-            "include_links": bool(self.chk_IncludeLinks.IsChecked)
+            "include_links": bool(self.chk_IncludeLinks.IsChecked),
+            "filepath": current_filepath
         }
 
         if save_preset(name, config_data):
             self._populate_presets(select_name=name)
-            forms.alert("Preset '{}' creado exitosamente.".format(name), title="Preset Creado")
+            forms.alert("Preset '{}' created successfully.".format(name), title="Preset Created")
         else:
-            forms.alert("No se pudo crear el preset.", error=True)
+            forms.alert("Could not create preset.", error=True)
 
     def on_load_preset(self, sender, args):
-        """Vuelve a cargar la configuración guardada del preset seleccionado."""
+        """Reloads the saved configuration of the selected preset."""
         if not self.cb_Presets.SelectedItem:
             return
         name = self.cb_Presets.SelectedItem.Tag
         self.on_preset_changed(sender, args)
-        forms.alert("Preset '{}' recargado exitosamente.".format(name), title="Preset")
+        forms.alert("Preset '{}' reloaded successfully.".format(name), title="Preset Loaded")
 
     def on_delete_preset(self, sender, args):
+        """Deletes the currently selected preset after confirmation."""
         if not self.cb_Presets.SelectedItem:
             return
         name = self.cb_Presets.SelectedItem.Tag
         
         confirm = forms.alert(
-            "¿Estás seguro de que deseas eliminar el preset '{}'?".format(name),
-            title="Eliminar Preset",
+            "Are you sure you want to delete preset '{}'?".format(name),
+            title="Delete Preset",
             yes=True, no=True
         )
         if confirm:
@@ -396,40 +409,38 @@ class CSVExportWindow(forms.WPFWindow):
                 self._populate_presets()
                 self._apply_initial_preset()
             else:
-                forms.alert("No se pudo eliminar el preset.", error=True)
+                forms.alert("Could not delete preset.", error=True)
 
-    # ---- Acciones de Cierre y Validación -----------------------------------
+    # ---- Validation & Dialog Result ----------------------------------------
 
     def on_export_click(self, sender, args):
         filepath = (self.tb_FilePath.Text or "").strip()
         if not filepath:
-            forms.alert("Debes especificar una ruta de destino para el archivo CSV.", warn=True)
+            forms.alert("Please specify a destination path for the CSV file.", warn=True)
             return
 
         if not self.selected_params:
-            forms.alert("Debes seleccionar al menos un parámetro para exportar.", warn=True)
+            forms.alert("Please select at least one parameter to export.", warn=True)
             return
 
         if not self.current_elements:
             cat_tag = self._get_current_category_tag()
-            name_cat = "Habitaciones" if cat_tag == "Rooms" else "Áreas"
             forms.alert(
-                "No se encontraron {} en el modelo actual ni en los vínculos cargados.\n"
-                "Asegúrate de que los vínculos estén cargados en el modelo federado.".format(name_cat),
+                "No {} found in the current model or loaded links.\n"
+                "Please make sure linked models are loaded.".format(cat_tag.lower()),
                 warn=True
             )
             return
 
-        # Asegurar directorio de destino
+        # Ensure target directory exists
         out_dir = os.path.dirname(filepath)
         if out_dir and not os.path.exists(out_dir):
             try:
                 os.makedirs(out_dir)
             except Exception as ex:
-                forms.alert("No se puede crear la carpeta de destino:\n{}".format(ex), error=True)
+                forms.alert("Cannot create destination folder:\n{}".format(ex), error=True)
                 return
 
-        # Preparar opciones ordenando parámetros según lista original
         ordered_selected = [p for p in self.all_params if p in self.selected_params]
         delim = self.cb_Delimiter.SelectedItem.Tag if self.cb_Delimiter.SelectedItem else ";"
         qual = self.cb_TextQualifier.SelectedItem.Tag if self.cb_TextQualifier.SelectedItem else "(none)"
@@ -444,9 +455,7 @@ class CSVExportWindow(forms.WPFWindow):
             "export_headers": bool(self.chk_Headers.IsChecked),
             "export_title": bool(self.chk_ExportTitle.IsChecked),
             "include_links": bool(self.chk_IncludeLinks.IsChecked),
-            "title_text": "Exportación de {}".format(
-                "Habitaciones" if self._get_current_category_tag() == "Rooms" else "Áreas"
-            )
+            "title_text": "Export of {}".format(self._get_current_category_tag())
         }
 
         self.DialogResult = True
@@ -457,5 +466,5 @@ class CSVExportWindow(forms.WPFWindow):
         self.Close()
 
     def get_export_options(self):
-        """Retorna las opciones de exportación seleccionadas."""
+        """Returns the selected export options."""
         return self.export_options

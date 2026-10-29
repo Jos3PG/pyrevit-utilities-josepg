@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
-"""Despachador del botón CSV Export en UtilitiesPG.
+"""Dispatcher for CSV Export button in UtilitiesPG.
 
-Este script actúa como lanzador de interfaz según las directrices de arquitectura modular.
-Toda la lógica de consulta reside en `lib/revit_queries/` y la lógica de exportación en `lib/csv_exporter/`.
+This script acts as the UI launcher according to modular architecture rules.
+All query logic lives in `lib/revit_queries/` and CSV export in `lib/csv_exporter/`.
 """
 __title__ = "CSV Export"
 __doc__ = """Version = 1.0
 Date    = 26.10.2026
 ________________________________________________________________
 Description:
-Exporta datos de Habitaciones (Rooms) y Áreas (Areas) a CSV.
-Permite configurar delimitadores, calificadores, selección y búsqueda
-de parámetros y gestión de presets.
+Exports Rooms and Areas data to CSV.
+Configurable delimiters, qualifiers, real-time parameter search,
+Element ID export, and persistent presets.
 ________________________________________________________________
 Author: Jos3PG"""
 
@@ -25,7 +25,7 @@ doc = revit.doc
 
 def main():
     if not doc:
-        forms.alert("No hay un documento activo de Revit abierto.", warn=True)
+        forms.alert("No active Revit document found.", warn=True)
         return
 
     try:
@@ -47,23 +47,23 @@ def main():
                 export_headers=opts["export_headers"]
             )
 
-            cat_label = "habitaciones" if opts["category"] == "Rooms" else "áreas"
+            cat_label = "rooms" if opts["category"] == "Rooms" else "areas"
             forms.alert(
-                "Exportación completada exitosamente.\n\n"
-                "Total de {} exportadas: {}\n"
-                "Parámetros incluidos: {}\n"
-                "Ruta del archivo:\n{}".format(
+                "Export completed successfully.\n\n"
+                "Total {} exported: {}\n"
+                "Parameters included: {}\n"
+                "File path:\n{}".format(
                     cat_label,
                     exported_count,
                     len(opts["selected_params"]),
                     opts["filepath"]
                 ),
-                title="CSV Export - Completado"
+                title="CSV Export - Completed"
             )
 
     except Exception as ex:
-        logger.error("Error al ejecutar CSV Export: {}".format(ex))
-        forms.alert("Ocurrió un error inesperado al exportar el archivo CSV:\n{}".format(ex), error=True)
+        logger.error("Error running CSV Export: {}".format(ex))
+        forms.alert("An unexpected error occurred during CSV export:\n{}".format(ex), error=True)
 
 
 if __name__ == "__main__":

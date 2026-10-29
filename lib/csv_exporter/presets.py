@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-"""Gestión de presets de configuración de exportación CSV (persistencia en JSON)."""
+"""Presets configuration and management for CSV Export (JSON persistence)."""
 
 import os
 import json
 import codecs
 
 DEFAULT_PRESETS = {
-    "Habitaciones - Básico": {
+    "Rooms - Basic": {
         "category": "Rooms",
         "parameters": [
             "Element ID", "ID",
@@ -21,9 +21,10 @@ DEFAULT_PRESETS = {
         "text_qualifier": "(none)",
         "export_headers": True,
         "exclude_unplaced": True,
-        "include_links": True
+        "include_links": True,
+        "filepath": ""
     },
-    "Habitaciones - Acabados y Datos": {
+    "Rooms - Finishes & Data": {
         "category": "Rooms",
         "parameters": [
             "Element ID", "ID",
@@ -43,9 +44,10 @@ DEFAULT_PRESETS = {
         "text_qualifier": "(none)",
         "export_headers": True,
         "exclude_unplaced": True,
-        "include_links": True
+        "include_links": True,
+        "filepath": ""
     },
-    "Áreas - Básico": {
+    "Areas - Basic": {
         "category": "Areas",
         "parameters": [
             "Element ID", "ID",
@@ -60,33 +62,44 @@ DEFAULT_PRESETS = {
         "text_qualifier": "(none)",
         "export_headers": True,
         "exclude_unplaced": True,
-        "include_links": True
+        "include_links": True,
+        "filepath": ""
     }
 }
 
 
 def get_user_preset_dir():
-    """Retorna el directorio de configuración en AppData para UtilitiesPG."""
-    appdata = os.getenv("APPDATA") or os.path.expanduser("~")
-    target_dir = os.path.join(appdata, "pyRevit", "UtilitiesPG")
-    if not os.path.exists(target_dir):
+    """Returns the configuration directory in AppData for UtilitiesPG, with local fallback."""
+    appdata = os.getenv("APPDATA")
+    if appdata:
+        target_dir = os.path.join(appdata, "pyRevit", "UtilitiesPG")
         try:
-            os.makedirs(target_dir)
+            if not os.path.exists(target_dir):
+                os.makedirs(target_dir)
+            # Test write access
+            test_file = os.path.join(target_dir, ".write_test")
+            with open(test_file, "w") as f:
+                f.write("")
+            if os.path.exists(test_file):
+                os.remove(test_file)
+            return target_dir
         except Exception:
             pass
-    return target_dir
+            
+    # Fallback to module directory if AppData is not writable
+    return os.path.dirname(os.path.abspath(__file__))
 
 
 def get_presets_file_path():
-    """Retorna la ruta completa al archivo presets.json."""
+    """Returns the full path to the presets.json file."""
     return os.path.join(get_user_preset_dir(), "csv_export_presets.json")
 
 
 def load_presets():
-    """Carga los presets guardados desde JSON, o inicializa con los predeterminados.
+    """Loads saved presets from JSON, falling back to defaults if none exist.
     
     Returns:
-        dict: Diccionario {nombre_preset: datos_preset}.
+        dict: Dictionary of {preset_name: preset_data}.
     """
     file_path = get_presets_file_path()
     presets = dict(DEFAULT_PRESETS)
@@ -104,14 +117,14 @@ def load_presets():
 
 
 def save_preset(name, config_dict):
-    """Guarda un preset individual en el archivo JSON.
+    """Saves an individual preset to the JSON file.
     
     Args:
-        name (str): Nombre del preset.
-        config_dict (dict): Configuración del preset.
+        name (str): Preset name.
+        config_dict (dict): Preset configuration data.
         
     Returns:
-        bool: True si se guardó correctamente.
+        bool: True if saved successfully.
     """
     if not name or not config_dict:
         return False
@@ -129,13 +142,13 @@ def save_preset(name, config_dict):
 
 
 def delete_preset(name):
-    """Elimina un preset por nombre.
+    """Deletes a preset by name.
     
     Args:
-        name (str): Nombre del preset.
+        name (str): Preset name.
         
     Returns:
-        bool: True si se eliminó correctamente.
+        bool: True if deleted successfully.
     """
     if not name:
         return False
