@@ -48,6 +48,8 @@ class CSVExportWindow(forms.WPFWindow):
         self.btn_DeletePreset.Click += self.on_delete_preset
         self.btn_Export.Click += self.on_export_click
         self.btn_Cancel.Click += self.on_cancel_click
+        self.chk_IncludeLinks.Checked += self.on_links_option_changed
+        self.chk_IncludeLinks.Unchecked += self.on_links_option_changed
         self.chk_ExcludeUnplaced.Checked += self.on_unplaced_option_changed
         self.chk_ExcludeUnplaced.Unchecked += self.on_unplaced_option_changed
 
@@ -136,12 +138,14 @@ class CSVExportWindow(forms.WPFWindow):
         return "Rooms"
 
     def _load_category(self, category_tag):
-        """Recopila elementos y parámetros de la categoría seleccionada."""
+        """Recopila elementos y parámetros de la categoría seleccionada (Host y Vínculos)."""
         exclude_unplaced = bool(self.chk_ExcludeUnplaced.IsChecked)
+        include_links = bool(self.chk_IncludeLinks.IsChecked)
         self.current_elements = get_spatial_elements(
             self.doc, 
             category_name=category_tag, 
-            exclude_unplaced=exclude_unplaced
+            exclude_unplaced=exclude_unplaced,
+            include_links=include_links
         )
         
         self.all_params = get_available_parameters(self.current_elements)
@@ -202,7 +206,10 @@ class CSVExportWindow(forms.WPFWindow):
     def _update_count_label(self):
         total = len(self.all_params)
         selected = len(self.selected_params)
-        self.lbl_ParamCount.Text = "{} de {} seleccionados".format(selected, total)
+        elem_count = len(self.current_elements)
+        self.lbl_ParamCount.Text = "{} de {} selec. ({} elem. encontrados)".format(
+            selected, total, elem_count
+        )
 
     # ---- Eventos de Interfaz -----------------------------------------------
 
@@ -211,6 +218,12 @@ class CSVExportWindow(forms.WPFWindow):
             return
         cat_tag = self._get_current_category_tag()
         self.selected_params.clear()
+        self._load_category(cat_tag)
+
+    def on_links_option_changed(self, sender, args):
+        if self.is_loading:
+            return
+        cat_tag = self._get_current_category_tag()
         self._load_category(cat_tag)
 
     def on_unplaced_option_changed(self, sender, args):
@@ -299,6 +312,7 @@ class CSVExportWindow(forms.WPFWindow):
         # 6. Opciones de aspecto
         self.chk_Headers.IsChecked = data.get("export_headers", True)
         self.chk_ExcludeUnplaced.IsChecked = data.get("exclude_unplaced", True)
+        self.chk_IncludeLinks.IsChecked = data.get("include_links", True)
         
         # Refrescar vista
         self._refresh_params_list()
@@ -321,7 +335,8 @@ class CSVExportWindow(forms.WPFWindow):
             "delimiter": selected_delim,
             "text_qualifier": selected_qual,
             "export_headers": bool(self.chk_Headers.IsChecked),
-            "exclude_unplaced": bool(self.chk_ExcludeUnplaced.IsChecked)
+            "exclude_unplaced": bool(self.chk_ExcludeUnplaced.IsChecked),
+            "include_links": bool(self.chk_IncludeLinks.IsChecked)
         }
         
         if save_preset(name, config_data):
@@ -362,7 +377,11 @@ class CSVExportWindow(forms.WPFWindow):
         if not self.current_elements:
             cat_tag = self._get_current_category_tag()
             name_cat = "Habitaciones" if cat_tag == "Rooms" else "Áreas"
-            forms.alert("No se encontraron {} colocadas en el modelo para exportar.".format(name_cat), warn=True)
+            forms.alert(
+                "No se encontraron {} en el modelo actual ni en los vínculos cargados.\n"
+                "Asegúrate de que los vínculos estén cargados en el modelo federado.".format(name_cat),
+                warn=True
+            )
             return
 
         # Asegurar directorio de destino
@@ -388,6 +407,7 @@ class CSVExportWindow(forms.WPFWindow):
             "text_qualifier": qual,
             "export_headers": bool(self.chk_Headers.IsChecked),
             "export_title": bool(self.chk_ExportTitle.IsChecked),
+            "include_links": bool(self.chk_IncludeLinks.IsChecked),
             "title_text": "Exportación de {}".format(
                 "Habitaciones" if self._get_current_category_tag() == "Rooms" else "Áreas"
             )

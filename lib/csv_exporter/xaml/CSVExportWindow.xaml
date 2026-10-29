@@ -122,6 +122,7 @@
             <StackPanel Margin="0,4,0,0">
                 <CheckBox x:Name="chk_ExportTitle" Content="Export title" Margin="0,0,0,6" IsChecked="False"/>
                 <CheckBox x:Name="chk_Headers" Content="Export column headers" Margin="0,0,0,6" IsChecked="True"/>
+                <CheckBox x:Name="chk_IncludeLinks" Content="Include elements from Revit Links (Incluir modelos vinculados)" Margin="0,0,0,6" IsChecked="True"/>
                 <CheckBox x:Name="chk_ExcludeUnplaced" Content="Exclude unplaced / unbounded elements" IsChecked="True"/>
             </StackPanel>
         </GroupBox>

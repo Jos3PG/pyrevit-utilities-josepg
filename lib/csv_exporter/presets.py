@@ -19,11 +19,13 @@ DEFAULT_PRESETS = {
         "delimiter": ";",
         "text_qualifier": "(none)",
         "export_headers": True,
-        "exclude_unplaced": True
+        "exclude_unplaced": True,
+        "include_links": True
     },
     "Habitaciones - Acabados y Datos": {
         "category": "Rooms",
         "parameters": [
+            "Revit Link",
             "Number", "Número", 
             "Name", "Nombre", 
             "Level", "Nivel", 
@@ -38,7 +40,8 @@ DEFAULT_PRESETS = {
         "delimiter": ";",
         "text_qualifier": "(none)",
         "export_headers": True,
-        "exclude_unplaced": True
+        "exclude_unplaced": True,
+        "include_links": True
     },
     "Áreas - Básico": {
         "category": "Areas",
@@ -53,7 +56,8 @@ DEFAULT_PRESETS = {
         "delimiter": ";",
         "text_qualifier": "(none)",
         "export_headers": True,
-        "exclude_unplaced": True
+        "exclude_unplaced": True,
+        "include_links": True
     }
 }
 
