@@ -36,10 +36,12 @@ class CSVExportWindow(forms.WPFWindow):
         self.all_params = []
         self.selected_params = set()
         self.current_elements = []
+        self.filter_selected_only = False
         
         # 1. Connect control events
         self.cb_Category.SelectionChanged += self.on_category_changed
         self.tb_SearchParam.TextChanged += self.on_search_changed
+        self.btn_FilterSelected.Click += self.on_toggle_filter_selected
         self.btn_SelectAll.Click += self.on_select_all
         self.btn_DeselectAll.Click += self.on_deselect_all
         self.btn_Browse.Click += self.on_browse
@@ -139,8 +141,18 @@ class CSVExportWindow(forms.WPFWindow):
             return selected.Tag
         return "Rooms"
 
+    def _reset_filter_selected(self):
+        """Resets the 'Filter Selected' toggle to default off state."""
+        self.filter_selected_only = False
+        try:
+            self.btn_FilterSelected.Content = "Filter Selected"
+            self.btn_FilterSelected.ToolTip = "Show only selected parameters"
+        except Exception:
+            pass
+
     def _load_category(self, category_tag):
         """Collects elements and available parameters for the selected category."""
+        self._reset_filter_selected()
         exclude_unplaced = bool(self.chk_ExcludeUnplaced.IsChecked)
         include_links = bool(self.chk_IncludeLinks.IsChecked)
         self.current_elements = get_spatial_elements(
@@ -178,11 +190,13 @@ class CSVExportWindow(forms.WPFWindow):
         self.tb_FilePath.Text = os.path.join(docs_dir, filename)
 
     def _refresh_params_list(self):
-        """Updates the ListBox filtering items based on the search query."""
+        """Updates the ListBox filtering items based on search and selected toggle."""
         filter_text = (self.tb_SearchParam.Text or "").strip().lower()
         self.lb_Parameters.Items.Clear()
 
         for p_name in self.all_params:
+            if self.filter_selected_only and p_name not in self.selected_params:
+                continue
             if not filter_text or filter_text in p_name.lower():
                 cb = CheckBox()
                 cb.Content = p_name
@@ -209,11 +223,27 @@ class CSVExportWindow(forms.WPFWindow):
         total = len(self.all_params)
         selected = len(self.selected_params)
         elem_count = len(self.current_elements)
-        self.lbl_ParamCount.Text = "{} of {} selected ({} elements found)".format(
-            selected, total, elem_count
+        filtered_tag = " [Filtered]" if self.filter_selected_only else ""
+        self.lbl_ParamCount.Text = "{}{} of {} selected ({} elements found)".format(
+            selected, filtered_tag, total, elem_count
         )
 
     # ---- UI Event Handlers -------------------------------------------------
+
+    def on_toggle_filter_selected(self, sender, args):
+        """Toggles between showing only selected parameters and showing all parameters."""
+        if not self.filter_selected_only:
+            if not self.selected_params:
+                forms.alert("No parameters are currently selected to filter.", warn=True)
+                return
+            self.filter_selected_only = True
+            self.btn_FilterSelected.Content = "Show All"
+            self.btn_FilterSelected.ToolTip = "Show all available parameters"
+        else:
+            self.filter_selected_only = False
+            self.btn_FilterSelected.Content = "Filter Selected"
+            self.btn_FilterSelected.ToolTip = "Show only selected parameters"
+        self._refresh_params_list()
 
     def on_category_changed(self, sender, args):
         if self.is_loading:
@@ -240,6 +270,8 @@ class CSVExportWindow(forms.WPFWindow):
     def on_select_all(self, sender, args):
         filter_text = (self.tb_SearchParam.Text or "").strip().lower()
         for p_name in self.all_params:
+            if self.filter_selected_only and p_name not in self.selected_params:
+                continue
             if not filter_text or filter_text in p_name.lower():
                 self.selected_params.add(p_name)
         self._refresh_params_list()
@@ -250,8 +282,12 @@ class CSVExportWindow(forms.WPFWindow):
             self.selected_params.clear()
         else:
             for p_name in self.all_params:
+                if self.filter_selected_only and p_name not in self.selected_params:
+                    continue
                 if filter_text in p_name.lower():
                     self.selected_params.discard(p_name)
+        if self.filter_selected_only and not self.selected_params:
+            self._reset_filter_selected()
         self._refresh_params_list()
 
     def on_browse(self, sender, args):

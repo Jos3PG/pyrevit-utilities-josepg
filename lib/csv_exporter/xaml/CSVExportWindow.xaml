@@ -115,8 +115,9 @@
 
                 <!-- Quick selection buttons -->
                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,0,0">
-                    <Button x:Name="btn_SelectAll" Content="Select All" Margin="0,0,6,0"/>
-                    <Button x:Name="btn_DeselectAll" Content="Deselect All"/>
+                    <Button x:Name="btn_FilterSelected" Content="Filter Selected" Margin="0,0,6,0" ToolTip="Show only selected parameters"/>
+                    <Button x:Name="btn_SelectAll" Content="Select All" Margin="0,0,6,0" ToolTip="Select all visible parameters"/>
+                    <Button x:Name="btn_DeselectAll" Content="Deselect All" ToolTip="Deselect visible parameters"/>
                 </StackPanel>
             </Grid>
         </GroupBox>
