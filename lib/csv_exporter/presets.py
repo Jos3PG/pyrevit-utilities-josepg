@@ -9,6 +9,7 @@ DEFAULT_PRESETS = {
     "Habitaciones - Básico": {
         "category": "Rooms",
         "parameters": [
+            "Element ID", "ID",
             "Number", "Número", 
             "Name", "Nombre", 
             "Level", "Nivel", 
@@ -25,6 +26,7 @@ DEFAULT_PRESETS = {
     "Habitaciones - Acabados y Datos": {
         "category": "Rooms",
         "parameters": [
+            "Element ID", "ID",
             "Revit Link",
             "Number", "Número", 
             "Name", "Nombre", 
@@ -46,6 +48,7 @@ DEFAULT_PRESETS = {
     "Áreas - Básico": {
         "category": "Areas",
         "parameters": [
+            "Element ID", "ID",
             "Number", "Número", 
             "Name", "Nombre", 
             "Level", "Nivel", 

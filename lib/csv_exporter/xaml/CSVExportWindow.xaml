@@ -63,10 +63,14 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <ComboBox x:Name="cb_Presets" Grid.Column="0" Margin="0,0,6,0"/>
-                <Button x:Name="btn_SavePreset" Grid.Column="1" Content="Guardar Preset" Margin="0,0,4,0" ToolTip="Guardar la configuración actual como preset"/>
-                <Button x:Name="btn_DeletePreset" Grid.Column="2" Content="Eliminar" ToolTip="Eliminar el preset seleccionado"/>
+                <Button x:Name="btn_SavePreset" Grid.Column="1" Content="Guardar" Margin="0,0,4,0" ToolTip="Guardar modificaciones en el preset actual"/>
+                <Button x:Name="btn_NewPreset" Grid.Column="2" Content="Nuevo" Margin="0,0,4,0" ToolTip="Crear un nuevo preset con la configuración actual"/>
+                <Button x:Name="btn_LoadPreset" Grid.Column="3" Content="Cargar" Margin="0,0,4,0" ToolTip="Recargar la configuración guardada de este preset"/>
+                <Button x:Name="btn_DeletePreset" Grid.Column="4" Content="Eliminar" ToolTip="Eliminar el preset seleccionado"/>
             </Grid>
         </GroupBox>
 

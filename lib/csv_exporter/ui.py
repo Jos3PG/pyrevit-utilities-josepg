@@ -45,6 +45,8 @@ class CSVExportWindow(forms.WPFWindow):
         self.btn_Browse.Click += self.on_browse
         self.cb_Presets.SelectionChanged += self.on_preset_changed
         self.btn_SavePreset.Click += self.on_save_preset
+        self.btn_NewPreset.Click += self.on_new_preset
+        self.btn_LoadPreset.Click += self.on_load_preset
         self.btn_DeletePreset.Click += self.on_delete_preset
         self.btn_Export.Click += self.on_export_click
         self.btn_Cancel.Click += self.on_cancel_click
@@ -318,17 +320,15 @@ class CSVExportWindow(forms.WPFWindow):
         self._refresh_params_list()
 
     def on_save_preset(self, sender, args):
-        name = forms.ask_for_string(
-            prompt="Ingresa un nombre para el nuevo Preset:",
-            title="Guardar Preset de Exportación"
-        )
-        if not name:
+        """Guarda las modificaciones sobre el preset actualmente seleccionado."""
+        if not self.cb_Presets.SelectedItem:
+            self.on_new_preset(sender, args)
             return
-            
-        name = name.strip()
+
+        name = self.cb_Presets.SelectedItem.Tag
         selected_delim = self.cb_Delimiter.SelectedItem.Tag if self.cb_Delimiter.SelectedItem else ";"
         selected_qual = self.cb_TextQualifier.SelectedItem.Tag if self.cb_TextQualifier.SelectedItem else "(none)"
-        
+
         config_data = {
             "category": self._get_current_category_tag(),
             "parameters": list(self.selected_params),
@@ -338,12 +338,48 @@ class CSVExportWindow(forms.WPFWindow):
             "exclude_unplaced": bool(self.chk_ExcludeUnplaced.IsChecked),
             "include_links": bool(self.chk_IncludeLinks.IsChecked)
         }
-        
+
         if save_preset(name, config_data):
-            self._populate_presets(select_name=name)
-            forms.alert("Preset '{}' guardado exitosamente.".format(name), title="Preset Guardado")
+            forms.alert("Cambios guardados en el preset '{}'.".format(name), title="Preset Guardado")
         else:
             forms.alert("No se pudo guardar el preset.", error=True)
+
+    def on_new_preset(self, sender, args):
+        """Crea un nuevo preset solicitando un nombre."""
+        name = forms.ask_for_string(
+            prompt="Ingresa un nombre para el nuevo Preset:",
+            title="Nuevo Preset de Exportación"
+        )
+        if not name:
+            return
+
+        name = name.strip()
+        selected_delim = self.cb_Delimiter.SelectedItem.Tag if self.cb_Delimiter.SelectedItem else ";"
+        selected_qual = self.cb_TextQualifier.SelectedItem.Tag if self.cb_TextQualifier.SelectedItem else "(none)"
+
+        config_data = {
+            "category": self._get_current_category_tag(),
+            "parameters": list(self.selected_params),
+            "delimiter": selected_delim,
+            "text_qualifier": selected_qual,
+            "export_headers": bool(self.chk_Headers.IsChecked),
+            "exclude_unplaced": bool(self.chk_ExcludeUnplaced.IsChecked),
+            "include_links": bool(self.chk_IncludeLinks.IsChecked)
+        }
+
+        if save_preset(name, config_data):
+            self._populate_presets(select_name=name)
+            forms.alert("Preset '{}' creado exitosamente.".format(name), title="Preset Creado")
+        else:
+            forms.alert("No se pudo crear el preset.", error=True)
+
+    def on_load_preset(self, sender, args):
+        """Vuelve a cargar la configuración guardada del preset seleccionado."""
+        if not self.cb_Presets.SelectedItem:
+            return
+        name = self.cb_Presets.SelectedItem.Tag
+        self.on_preset_changed(sender, args)
+        forms.alert("Preset '{}' recargado exitosamente.".format(name), title="Preset")
 
     def on_delete_preset(self, sender, args):
         if not self.cb_Presets.SelectedItem:

@@ -148,8 +148,9 @@ def get_available_parameters(elements):
         except Exception:
             continue
             
-    # Añadir columna virtual 'Revit Link' si hay elementos recopilados
+    # Añadir columnas virtuales estándar si hay elementos recopilados
     if elements:
+        param_names.add("Element ID")
         param_names.add("Revit Link")
 
     sorted_names = sorted(list(param_names), key=lambda x: x.lower())
@@ -176,11 +177,22 @@ def get_element_parameter_value(doc, element, param_name):
     try:
         p_lower = param_name.lower()
         
-        # 1. Columna virtual para el nombre del modelo o vínculo
+        # 1. Element ID (Habitaciones y Áreas, tanto en Host como en Vínculos)
+        if p_lower in ("element id", "elementid", "id"):
+            eid = getattr(element, "Id", None)
+            if eid:
+                try:
+                    val = getattr(eid, "Value", getattr(eid, "IntegerValue", None))
+                    return str(val) if val is not None else ""
+                except Exception:
+                    return ""
+            return ""
+
+        # 2. Columna virtual para el nombre del modelo o vínculo
         if p_lower in ("revit link", "vínculo", "vinculo", "modelo vínculo", "link name"):
             return _ELEMENT_LINK_MAP.get(getattr(element, "UniqueId", ""), getattr(elem_doc, "Title", ""))
 
-        # 2. Atajos directos para propiedades nativas de SpatialElement
+        # 3. Atajos directos para propiedades nativas de SpatialElement
         if p_lower in ("level", "nivel") and getattr(element, "Level", None):
             return getattr(element.Level, "Name", "") or ""
 
@@ -194,7 +206,7 @@ def get_element_parameter_value(doc, element, param_name):
             if val:
                 return str(val)
 
-        # 3. Búsqueda de parámetro en el elemento
+        # 4. Búsqueda de parámetro en el elemento
         param = element.LookupParameter(param_name)
         if not param:
             for p in element.Parameters:
@@ -214,12 +226,12 @@ def get_element_parameter_value(doc, element, param_name):
 
         storage_type = param.StorageType
         
-        # 4. Formateo según unidades de Revit (m², m, etc.)
+        # 5. Formateo según unidades de Revit (m², m, etc.)
         val_str = param.AsValueString()
         if val_str:
             return val_str.strip()
             
-        # 5. Formateo según tipo de almacenamiento
+        # 6. Formateo según tipo de almacenamiento
         if storage_type == DB.StorageType.String:
             s = param.AsString()
             return s.strip() if s else ""
