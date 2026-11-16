@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Key Schedule Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-shell">
+        <!-- 1. TOP HEADER BAR (SIN ICONOS) -->
+        <header class="top-header">
+            <div class="brand-area">
+                <div>
+                    <h1 class="app-title">Key Schedule Manager</h1>
+                    <span class="app-subtitle" id="lblCategoryBadge">Cargando tablas clave del modelo...</span>
+                </div>
+            </div>
+
+            <div class="schedule-selector-bar">
+                <label for="selSchedule" class="selector-label">Tabla Clave:</label>
+                <select id="selSchedule" class="schedule-select" title="Seleccionar Key Schedule"></select>
+                <button id="btnRefresh" class="btn btn-header" title="Recargar datos desde Revit">
+                    Recargar
+                </button>
+                <button id="btnToggleConfig" class="btn btn-secondary" title="Mostrar u ocultar paneles superiores">
+                    Ocultar Paneles
+                </button>
+            </div>
+        </header>
+
+        <!-- 2. TOP TABS PANEL: CAMPOS EN USO, AGRUPACION Y ORDEN, HABITACIONES SIN ESTILO, KPIS -->
+        <section class="config-panel" id="configPanel">
+            <div class="tabs-header">
+                <div class="tabs-nav">
+                    <button class="tab-btn active" data-tab="tabFields">
+                        Campos en Uso <span class="tab-badge" id="badgeFieldsCount">0</span>
+                    </button>
+                    <button class="tab-btn" data-tab="tabSorting">
+                        Agrupación y Orden <span class="tab-badge" id="badgeSortCount">0</span>
+                    </button>
+                    <button class="tab-btn" data-tab="tabUnassigned" id="btnTabUnassigned">
+                        <span id="lblTabUnassignedTitle">Habitaciones sin Estilo</span>
+                        <span class="tab-badge" id="badgeUnassignedCount">0</span>
+                    </button>
+                    <button class="tab-btn" data-tab="tabKPIs">
+                        KPIs
+                    </button>
+                </div>
+                <div class="tabs-info">
+                    <span id="defStatusIndicator" class="def-status">Estructura sincronizada con Revit</span>
+                </div>
+            </div>
+
+            <!-- CONTENEDOR DE ALTURA AJUSTABLE -->
+            <div class="tabs-body-wrap" id="tabsBodyWrap">
+                <!-- TAB 1: CAMPOS EN USO -->
+                <div class="tab-content active" id="tabFields">
+                    <div class="fields-manager" id="fieldsSplitLayout">
+                        <div class="fields-box" id="fieldsLeftPane">
+                            <div class="fields-box-header">
+                                <span id="lblFieldsLeftTitle">Campos disponibles (<span id="lblAvailCount">0</span>)</span>
+                                <div class="fields-search-actions">
+                                    <input type="text" id="txtSearchAvailFields" class="input-sm" placeholder="Buscar parámetro...">
+                                    <button id="btnToggleInUseFields" class="btn btn-secondary btn-sm" title="Alternar entre parámetros disponibles y parámetros en uso en la tabla">En uso</button>
+                                </div>
+                            </div>
+                            <div class="fields-list" id="listAvailFields"></div>
+                        </div>
+
+                        <div class="fields-actions">
+                            <button id="btnAddField" class="btn btn-secondary btn-sm" title="Añadir campo seleccionado a la tabla">Añadir</button>
+                            <button id="btnRemoveField" class="btn btn-secondary btn-sm" title="Quitar campo seleccionado de la tabla">Quitar</button>
+                            <hr class="divider-sm">
+                            <button id="btnMoveFieldUp" class="btn btn-secondary btn-sm" title="Subir orden de columna">Subir</button>
+                            <button id="btnMoveFieldDown" class="btn btn-secondary btn-sm" title="Bajar orden de columna">Bajar</button>
+                        </div>
+
+                        <div class="v-resizer" id="fieldsVerticalResizer" title="Arrastra horizontalmente para ajustar el ancho entre paneles"></div>
+
+                        <div class="fields-box fields-box-wide" id="fieldsRightPane">
+                            <div class="fields-box-header">
+                                <span>Campos activos en la tabla (Orden de columnas y Encabezados)</span>
+                                <span class="hint-text">Selecciona un campo para reordenar o editar su encabezado</span>
+                            </div>
+                            <div class="fields-list" id="listActiveFields"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: AGRUPACION Y ORDEN -->
+                <div class="tab-content" id="tabSorting">
+                    <div class="subpanel-toolbar">
+                        <button id="btnAddSortRule" class="btn btn-primary btn-sm">Añadir nivel de agrupación y orden</button>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="chkItemizeEveryInstance" checked>
+                            Detallar cada ejemplar (Itemize every instance)
+                        </label>
+                        <span class="hint-text">La vista previa inferior muestra en tiempo real los encabezados, pies de grupo y líneas en blanco igual que en Revit.</span>
+                    </div>
+                    <div class="rules-container" id="listSortRules"></div>
+                </div>
+
+                <!-- TAB 3: HABITACIONES / ELEMENTOS SIN ESTILO ASIGNADO (3/4 TABLA + 1/4 SELECTOR DE PARAMETROS) -->
+                <div class="tab-content" id="tabUnassigned">
+                    <div class="unassigned-split-layout" id="unassignedSplitLayout">
+                        <!-- Panel Izquierdo (3/4 inicial): Toolbar + Tabla de Habitaciones sin Estilo -->
+                        <div class="unassigned-left-pane" id="unassignedLeftPane">
+                            <div class="unassigned-toolbar">
+                                <div class="unassigned-toolbar-row">
+                                    <div class="filter-group">
+                                        <div class="search-input-wrap">
+                                            <input type="text" id="txtUnassignedGlobalFilter" class="input-control input-sm" placeholder="Filtrar habitaciones...">
+                                            <button id="btnClearUnassignedGlobal" class="btn-clear btn-clear-sm">Limpiar</button>
+                                        </div>
+                                        <span class="toolbar-label">Por campo:</span>
+                                        <select id="selUnassignedFilterField" class="input-control select-sm"></select>
+                                        <select id="selUnassignedFilterOp" class="input-control select-xs">
+                                            <option value="contains">Contiene</option>
+                                            <option value="equals">Igual a</option>
+                                            <option value="starts">Empieza por</option>
+                                            <option value="empty">Está vacío</option>
+                                            <option value="not_empty">No está vacío</option>
+                                        </select>
+                                        <input type="text" id="txtUnassignedFilterVal" class="input-control input-sm" placeholder="Valor...">
+                                        <button id="btnClearUnassignedFilters" class="btn btn-ghost btn-sm">Restablecer</button>
+                                    </div>
+                                    <div class="actions-group">
+                                        <button id="btnToggleUnassignedReplace" class="btn btn-secondary btn-sm">Buscar y Sustituir</button>
+                                        <span id="lblUnassignedStatus" class="status-hint">0 elementos</span>
+                                        <span id="lblUnassignedCellSel" class="selection-status">0 celdas</span>
+                                    </div>
+                                </div>
+
+                                <!-- Barra de Buscar y Sustituir para Habitaciones sin Estilo -->
+                                <div class="replace-bar hidden" id="unassignedReplaceBar">
+                                    <div class="replace-inputs">
+                                        <span class="replace-title">Buscar y Sustituir:</span>
+                                        <input type="text" id="txtUnassignedFind" class="input-control input-sm" placeholder="Buscar...">
+                                        <span class="arrow-sep">por</span>
+                                        <input type="text" id="txtUnassignedReplace" class="input-control input-sm" placeholder="Sustituir por...">
+                                        <span class="toolbar-label">En:</span>
+                                        <select id="selUnassignedReplaceField" class="input-control select-sm"></select>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="chkUnassignedReplaceCase"> Mayús/Minús
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="chkUnassignedReplaceExact"> Celda completa
+                                        </label>
+                                    </div>
+                                    <div class="replace-actions">
+                                        <span id="lblUnassignedReplaceCount" class="replace-preview-badge">0 coincidencias</span>
+                                        <button id="btnUnassignedReplaceVisible" class="btn btn-primary btn-sm">Sustituir en visibles</button>
+                                        <button id="btnUnassignedReplaceSelected" class="btn btn-secondary btn-sm">Sustituir en seleccionadas</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="unassigned-table-container" id="unassignedTableContainer" tabindex="0">
+                                <table class="ks-table" id="unassignedTable">
+                                    <thead id="unassignedTableHead"></thead>
+                                    <tbody id="unassignedTableBody"></tbody>
+                                </table>
+                                <div id="emptyUnassignedState" class="empty-state hidden">
+                                    <p>No hay elementos sin estilo asignado que coincidan con el filtro.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Divisor Vertical Ajustable -->
+                        <div class="v-resizer" id="unassignedVerticalResizer" title="Arrastra horizontalmente para ajustar el ancho entre la tabla y el selector de parámetros"></div>
+
+                        <!-- Panel Derecho (1/4 inicial): Selector de Parámetros de Habitaciones -->
+                        <div class="unassigned-right-pane" id="unassignedRightPane">
+                            <div class="fields-box-header">
+                                <span>Parámetros (<span id="lblRoomParamsCount">0</span>)</span>
+                                <label class="checkbox-label" title="Mostrar únicamente los parámetros marcados con tick">
+                                    <input type="checkbox" id="chkFilterTickedParams"> Solo marcados
+                                </label>
+                            </div>
+                            <div class="param-search-row">
+                                <input type="text" id="txtSearchRoomParams" class="input-control input-sm" placeholder="Buscar parámetro...">
+                            </div>
+                            <div class="fields-list" id="listRoomParams"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: KPIS -->
+                <div class="tab-content" id="tabKPIs">
+                    <div class="kpi-grid">
+                        <!-- KPI 1: Total Keys & Pending Changes -->
+                        <div class="kpi-card clickable" id="kpiCardChanges" title="Haz clic para filtrar solo filas con cambios pendientes">
+                            <div class="kpi-header">
+                                <span class="kpi-label">TOTAL CLAVES Y CAMBIOS</span>
+                                <span class="kpi-tag" id="kpiPendingBadge">Sin cambios</span>
+                            </div>
+                            <div class="kpi-main-row">
+                                <span class="kpi-value" id="kpiTotalRows">0</span>
+                                <span class="kpi-unit">filas activas</span>
+                            </div>
+                            <div class="kpi-sub-metrics" id="kpiDiffBreakdown">
+                                <span class="diff-pill diff-new" id="kpiNewCount">0 nuevas</span>
+                                <span class="diff-pill diff-mod" id="kpiModCount">0 editadas</span>
+                                <span class="diff-pill diff-del" id="kpiDelCount">0 eliminadas</span>
+                            </div>
+                        </div>
+
+                        <!-- KPI 2: Model Usage (In Use vs Orphan Keys) -->
+                        <div class="kpi-card clickable" id="kpiCardOrphans" title="Haz clic para filtrar claves huérfanas (0 usos en el modelo)">
+                            <div class="kpi-header">
+                                <span class="kpi-label">USO EN EL MODELO</span>
+                                <span class="kpi-tag kpi-tag-action" id="kpiOrphanActionTag">Filtrar huérfanas</span>
+                            </div>
+                            <div class="kpi-main-row">
+                                <span class="kpi-value" id="kpiUsedKeys">0</span>
+                                <span class="kpi-unit">en uso / <strong id="kpiOrphanKeys" class="text-warn">0</strong> huérfanas</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill fill-emerald" id="barUsageRatio" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- KPI 3: Data Completeness (%) -->
+                        <div class="kpi-card" id="kpiCardCompleteness">
+                            <div class="kpi-header">
+                                <span class="kpi-label">COMPLETITUD DE DATOS</span>
+                                <span class="kpi-tag" id="kpiEmptyCellsCount">0 celdas vacías</span>
+                            </div>
+                            <div class="kpi-main-row">
+                                <span class="kpi-value" id="kpiCompletenessPct">100%</span>
+                                <span class="kpi-unit">celdas completadas</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill fill-blue" id="barCompleteness" style="width: 100%"></div>
+                            </div>
+                        </div>
+
+                        <!-- KPI 4: Model Elements Impacted -->
+                        <div class="kpi-card">
+                            <div class="kpi-header">
+                                <span class="kpi-label">IMPACTO EN MODELO</span>
+                                <span class="kpi-tag" id="kpiCategoryName">Categoría</span>
+                            </div>
+                            <div class="kpi-main-row">
+                                <span class="kpi-value" id="kpiImpactedElements">0</span>
+                                <span class="kpi-unit">de <strong id="kpiTotalModelElements">0</strong> ejemplares con clave</span>
+                            </div>
+                            <div class="kpi-sub-text" id="kpiKeyParamInfo">
+                                Parámetro clave: <strong>Key Name</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- BARRA DIVISORA HORIZONTAL FINA ENTRE PANELES DE PESTAÑAS Y TABLA INFERIOR -->
+        <div class="h-resizer" id="panelHeightResizer" title="Arrastra verticalmente para cambiar el alto de las pestañas (doble clic para expandir/contraer)"></div>
+
+        <!-- 3. DATA OPERATIONS TOOLBAR (FILTER, FIND & REPLACE, INSERT/PASTE) -->
+        <section class="data-toolbar">
+            <div class="toolbar-row">
+                <div class="filter-group">
+                    <div class="search-input-wrap">
+                        <input type="text" id="txtGlobalFilter" class="input-control" placeholder="Filtrar tabla (búsqueda global)...">
+                        <button id="btnClearGlobalFilter" class="btn-clear" title="Limpiar filtro global">Limpiar</button>
+                    </div>
+
+                    <div class="field-filter-wrap">
+                        <span class="toolbar-label">Filtrar por campo:</span>
+                        <select id="selFilterField" class="input-control select-sm">
+                            <option value="__ALL__">Todos los campos</option>
+                        </select>
+                        <select id="selFilterFieldOp" class="input-control select-xs">
+                            <option value="contains">Contiene</option>
+                            <option value="equals">Igual a</option>
+                            <option value="starts">Empieza por</option>
+                            <option value="empty">Está vacío</option>
+                            <option value="not_empty">No está vacío</option>
+                        </select>
+                        <input type="text" id="txtFilterFieldValue" class="input-control input-sm" placeholder="Valor del campo...">
+                    </div>
+
+                    <button id="btnClearAllTableFilters" class="btn btn-ghost btn-sm" title="Limpiar todos los filtros de vista">
+                        Restablecer filtros
+                    </button>
+                </div>
+
+                <div class="actions-group">
+                    <button id="btnToggleReplaceBar" class="btn btn-secondary btn-sm">
+                        Buscar y Sustituir
+                    </button>
+                    <div class="vr"></div>
+                    <div class="insert-group">
+                        <button id="btnAddRow" class="btn btn-emerald btn-sm" title="Insertar nueva fila al final">
+                            Insertar Fila
+                        </button>
+                        <input type="number" id="numAddRowsCount" class="input-control input-xs" value="1" min="1" max="200" title="Cantidad de filas a insertar">
+                        <button id="btnDuplicateRows" class="btn btn-secondary btn-sm" title="Duplicar filas seleccionadas">
+                            Duplicar
+                        </button>
+                        <button id="btnOpenPasteModal" class="btn btn-secondary btn-sm" title="Pegar bloque de celdas desde Excel (o usa Ctrl+V directo en la tabla)">
+                            Pegar Excel
+                        </button>
+                        <button id="btnDeleteSelectedRows" class="btn btn-danger btn-sm" title="Marcar o desmarcar filas seleccionadas para eliminar">
+                            Eliminar Filas
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="replace-bar hidden" id="replaceBar">
+                <div class="replace-inputs">
+                    <span class="replace-title">Buscar y Sustituir:</span>
+                    <input type="text" id="txtFindWord" class="input-control input-sm" placeholder="Buscar palabra o texto...">
+                    <span class="arrow-sep">por</span>
+                    <input type="text" id="txtReplaceWord" class="input-control input-sm" placeholder="Sustituir por...">
+                    <span class="toolbar-label">En:</span>
+                    <select id="selReplaceScopeField" class="input-control select-sm">
+                        <option value="__ALL__">Toda la tabla (campos activos)</option>
+                    </select>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="chkReplaceCase"> Mayús/Minús
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="chkReplaceExact"> Celda completa
+                    </label>
+                </div>
+                <div class="replace-actions">
+                    <span id="lblReplacePreviewCount" class="replace-preview-badge">0 coincidencias</span>
+                    <button id="btnExecuteReplaceVisible" class="btn btn-primary btn-sm">
+                        Sustituir en visibles
+                    </button>
+                    <button id="btnExecuteReplaceSelected" class="btn btn-secondary btn-sm">
+                        Sustituir en seleccionadas
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. LIVE PREVIEW DATA TABLE (STAGING GRID) -->
+        <main class="table-workspace">
+            <div class="table-container" id="tableContainer" tabindex="0">
+                <table class="ks-table" id="ksTable">
+                    <thead id="ksTableHead"></thead>
+                    <tbody id="ksTableBody"></tbody>
+                </table>
+                <div id="emptyTableState" class="empty-state hidden">
+                    <p>No hay filas que coincidan con los filtros actuales.</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- 5. FOOTER / STAGING COMMIT BAR -->
+        <footer class="bottom-bar">
+            <div class="footer-left">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="chkShowOnlyModified">
+                    Mostrar solo filas con cambios pendientes
+                </label>
+                <span class="vr"></span>
+                <span id="lblVisibleRowsStatus" class="status-text">Mostrando 0 de 0 filas</span>
+                <span class="vr"></span>
+                <span id="lblCellSelectionStatus" class="selection-status">0 celdas seleccionadas</span>
+                <span class="vr"></span>
+                <span class="status-hint">1 clic selecciona (usa desplegable), 2 clics edita texto, arrastra o Shift+Clic para selección múltiple.</span>
+            </div>
+
+            <div class="footer-right">
+                <button id="btnDiscardChanges" class="btn btn-ghost" disabled>
+                    Descartar cambios
+                </button>
+                <button id="btnCloseWindow" class="btn btn-secondary">
+                    Cerrar
+                </button>
+                <button id="btnApplyChanges" class="btn btn-primary btn-apply" disabled>
+                    Aplicar Cambios en Revit
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- MENU DESPLEGABLE FLOTANTE PARA CELDAS -->
+    <div id="cellDropdownMenu" class="cell-dropdown-menu hidden">
+        <div class="dropdown-search-wrap">
+            <input type="text" id="txtDropdownFilter" class="input-control input-sm" placeholder="Filtrar opciones...">
+        </div>
+        <div id="cellDropdownList" class="cell-dropdown-list"></div>
+    </div>
+
+    <!-- MODAL PARA PEGAR DATOS DESDE EXCEL / TSV -->
+    <div class="modal-backdrop hidden" id="pasteModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3>Insertar o Pegar Datos desde Excel</h3>
+                <button id="btnClosePasteModal" class="btn-clear">Cerrar</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">
+                    Pega aquí las filas copiadas desde Excel (separadas por tabuladores).
+                    Cada línea se insertará como una nueva fila (o actualizará existentes si el <strong>Key Name</strong> coincide).
+                </p>
+                <div class="modal-options">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="chkPasteFirstRowHeaders">
+                        La primera fila pegada contiene encabezados de columna
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="chkPasteUpdateExisting" checked>
+                        Si el Key Name ya existe, actualizar sus celdas en lugar de duplicar
+                    </label>
+                </div>
+                <textarea id="txtPasteArea" class="paste-textarea" placeholder="Pega aquí tus celdas de Excel (Ctrl+V)..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="btnCancelPaste" class="btn btn-secondary">Cancelar</button>
+                <button id="btnConfirmPaste" class="btn btn-emerald">Previsualizar Inserción en la Tabla</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,2 +1,2 @@
 # -*- coding: utf-8 -*-
-"""Módulo de consultas de elementos espaciales (Habitaciones y Áreas) de Revit."""
+"""Módulo de consultas optimizadas de Revit API (Elementos Espaciales y Key Schedules)."""

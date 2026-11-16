@@ -1,0 +1,11 @@
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Key Schedule Manager — UtilitiesPG"
+        Height="860" Width="1380"
+        MinHeight="640" MinWidth="980"
+        WindowStartupLocation="CenterScreen"
+        Background="#0F172A">
+    <Grid>
+        <Border x:Name="WebViewHost" Background="#0F172A"/>
+    </Grid>
+</Window>

@@ -37,6 +37,17 @@ Luego recarga pyRevit en Revit (`pyRevit > Reload`).
   * Sistema de **Presets** para guardar y reutilizar configuraciones de campos y exportación.
   * Interfaz moderna desarrollada en WPF/XAML con manejo seguro de contexto de Revit API.
 
+### 📋 Panel: Schedules
+* **Key Schedule Manager (WebView2)**:
+  * Gestor y editor integral de **Tablas de Claves (*Key Schedules*)** en WebView2 con paneles de altura y ancho ajustables.
+  * **4 Pestañas Superiores**:
+    * *Campos en Uso*: Añadir, quitar, reordenar, ocultar, editar encabezados y filtrar parámetros disponibles vs. en uso.
+    * *Agrupación y Orden*: Configuración de `ScheduleSortGroupField` y `Detallar cada ejemplar` con previsualización fiel a Revit (encabezados, pies de grupo, líneas en blanco y colapsado `<varía>`).
+    * *Habitaciones sin Estilo*: Tabla interactiva (4/5) de elementos/habitaciones sin clave asignada para asignar estilos o editar parámetros, con selector de parámetros con ticks a la derecha (1/5).
+    * *KPIs*: Total de claves y cambios pendientes, análisis de *Claves en uso vs. Claves huérfanas*, porcentaje de *Completitud de datos* e impacto en el modelo.
+  * **Edición Tipo Excel & Previsualización (*Staging*)**: Selección multicelda (arrastrar, `Shift+Clic`, `Ctrl+Clic`), desplegables de valores únicos/claves al clic, edición inline al doble clic (`Esc` para cancelar sin cerrar la ventana), columnas redimensionables y pegado `Ctrl+V` desde Excel.
+  * **Edición Masiva y Filtrado**: *Buscar y sustituir palabras* con vista previa en vivo, *Insertar/Duplicar filas*, *Filtro global*, *Filtro por campo* y confirmación atómica en un `TransactionGroup`.
+
 ---
 
 ## 🏗️ Arquitectura del Proyecto
