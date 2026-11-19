@@ -49,11 +49,21 @@ def ensure_webview2_assemblies():
     localappdata = os.getenv("LOCALAPPDATA") or ""
     programfiles = os.getenv("PROGRAMFILES") or "C:\\Program Files"
 
-    candidate_dirs = [
+    candidate_dirs = []
+    try:
+        import pyrevit as _pyrevit
+        if getattr(_pyrevit, "BIN_DIR", None):
+            candidate_dirs.append(_pyrevit.BIN_DIR)
+        if getattr(_pyrevit, "ROOT_BIN_DIR", None):
+            candidate_dirs.append(os.path.join(_pyrevit.ROOT_BIN_DIR, subfolder))
+    except Exception:
+        pass
+
+    candidate_dirs.extend([
         os.path.join(appdata, "pyRevit-Master", "bin", subfolder),
         os.path.join(localappdata, "pyRevit-Master", "bin", subfolder),
         os.path.join(programfiles, "pyRevit-Master", "bin", subfolder),
-    ]
+    ])
 
     for bin_dir in candidate_dirs:
         core_dll = os.path.join(bin_dir, "Microsoft.Web.WebView2.Core.dll")

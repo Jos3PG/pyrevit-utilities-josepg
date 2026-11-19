@@ -364,7 +364,7 @@
                 <span class="vr"></span>
                 <span id="lblCellSelectionStatus" class="selection-status">0 celdas seleccionadas</span>
                 <span class="vr"></span>
-                <span class="status-hint">1 clic selecciona (usa desplegable), 2 clics edita texto, arrastra o Shift+Clic para selección múltiple.</span>
+                <span class="status-hint">1 clic selecciona, 2 clics edita, Ctrl+C / Ctrl+V copia y pega, arrastra la esquina inferior derecha para autorrellenar.</span>
             </div>
 
             <div class="footer-right">
@@ -416,6 +416,49 @@
             <div class="modal-footer">
                 <button id="btnCancelPaste" class="btn btn-secondary">Cancelar</button>
                 <button id="btnConfirmPaste" class="btn btn-emerald">Previsualizar Inserción en la Tabla</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL BUSCAR Y SUSTITUIR POR COLUMNA -->
+    <div class="modal-backdrop hidden" id="colReplaceModal">
+        <div class="modal-dialog modal-col-replace">
+            <div class="modal-header">
+                <h3 id="lblColReplaceTitle">Buscar y Sustituir en columna</h3>
+                <button id="btnCloseColReplaceModal" class="btn-clear">Cerrar</button>
+            </div>
+            <div class="modal-body">
+                <div class="col-replace-form">
+                    <div class="col-replace-field">
+                        <label for="txtColFind" class="toolbar-label">Buscar:</label>
+                        <input type="text" id="txtColFind" class="input-control" placeholder="Texto o palabra a buscar...">
+                    </div>
+                    <div class="col-replace-field">
+                        <label for="txtColReplace" class="toolbar-label">Sustituir por:</label>
+                        <input type="text" id="txtColReplace" class="input-control" placeholder="Nuevo texto (dejar vacío para borrar)...">
+                    </div>
+                </div>
+                <div class="col-replace-options">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="chkColReplaceCase"> Coincidir mayúsculas/minúsculas
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="chkColReplaceExact"> Coincidir celda completa
+                    </label>
+                    <span id="lblColReplaceCount" class="replace-preview-badge">0 coincidencias</span>
+                </div>
+                <div class="col-replace-preview-box">
+                    <div class="col-replace-preview-head">
+                        <span>Valor actual</span>
+                        <span>Nuevo valor (vista previa)</span>
+                    </div>
+                    <div id="colReplacePreviewList" class="col-replace-preview-list"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btnCancelColReplace" class="btn btn-secondary">Cancelar</button>
+                <button id="btnApplyColReplaceSelected" class="btn btn-secondary">Sustituir en seleccionadas</button>
+                <button id="btnApplyColReplaceAll" class="btn btn-primary">Sustituir en columna visible</button>
             </div>
         </div>
     </div>
